@@ -1,0 +1,194 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<style>
+    .booking-result {
+        background-color: #fff;
+        padding: 50px 20px;
+        -webkit-box-shadow: 0px 5px 20px -5px rgba(0, 0, 0, 0.3);
+        box-shadow: 0px 5px 20px -5px rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+    }
+</style>
+
+<script>
+    var IdViaje = 0;
+
+    $(document).ready(function (e) {
+        $('#btnAbrirVentana').click(function (e) {
+            e.preventDefault();
+            $('#CodigoViaje').val('');
+            $('#Origen').val('');
+            $('#Destino').val('');
+            $('#Precio').val('');
+            $('#LugaresDisponibles').val('');
+            $('#mdlCrearViaje').modal('show');
+        });
+
+        $('#btnGuardar').click(function (e) {
+            e.preventDefault();
+
+            var CodigoViaje = $('#CodigoViaje').val();
+            var Origen = $('#Origen').val();
+            var Destino = $('#Destino').val();
+            var Precio = $('#Precio').val();
+            var LugaresDisponibles = $('#LugaresDisponibles').val();
+
+
+            var Telefono = $('#Telefono').val();
+
+            if (IdViaje == 0) {
+                var data = JSON.stringify({ CodigoViaje: CodigoViaje, Origen: Origen, Destino: Destino, Precio: parseFloat(Precio), LugaresDisponibles: parseFloat(LugaresDisponibles) });
+
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json",
+                    url: "http://localhost:3000/Viaje",
+                    data: data,
+                    success: function (e) {
+                        $('#mdlCrearViaje').modal('hide');
+                        cargarDatos();
+                    },
+                    dataType: 'json'
+                });
+            }
+            else {
+                var data = JSON.stringify({ IdViaje, IdViaje, CodigoViaje: CodigoViaje, Origen: Origen, Destino: Destino, Precio: parseFloat(Precio), LugaresDisponibles: parseFloat(LugaresDisponibles) });
+
+                $.ajax({
+                    type: "PUT",
+                    contentType: "application/json",
+                    url: "http://localhost:3000/Viaje/" + IdViaje,
+                    data: data,
+                    success: function (e) {
+                        $('#mdlCrearViaje').modal('hide');
+                        IdViaje = 0;
+                        $('#CodigoViaje').val('');
+                        $('#Origen').val('');
+                        $('#Destino').val('');
+                        $('#Precio').val('');
+                        $('#LugaresDisponibles').val('');
+                        cargarDatos();
+                        
+                    },
+                    dataType: 'json'
+                });
+            }
+
+
+        });
+
+        cargarDatos();
+    });
+
+    function cargarDatos() {
+        $("#tblViajes > tbody").html("");
+        $.get("http://localhost:3000/Viaje/", function (data, status) {
+            $.each(data, function (index, obj) {
+                var markup = "<tr>" +
+                    "<td style='display:none;'>" + obj.IdViaje + "</td>" +
+                    "<td>" + obj.codigoViaje + "</td>" +
+                    "<td>" + obj.origen + "</td>" +
+                    "<td>" + obj.destino + "</td>" +
+                    "<td>" + obj.precio + "</td>" +
+                    "<td>" + obj.lugaresDisponibles + "</td>" +
+                    "<td><button type='button' class='btn btn-outline-primary' onclick='javascript:mostrarRegistro(" + obj.idViaje + ")'><i class='fa fa-pencil-square-o'></i> Editar</button>  <button type='button' class='btn btn-outline-danger' onclick='javascript:borrarDatos(this, " + obj.idViaje + ")'><i class='fa fa-trash-o'></i> Borrar</button></td>" +
+                    "</tr > ";
+                $("#tblViajes tbody").append(markup);
+
+            });
+        });
+    }
+
+    function borrarDatos(row, id) {
+        $.ajax({
+            type: "DELETE",
+            contentType: "application/json",
+            url: "http://localhost:3000/Viaje/" + id,
+            success: function (e) {
+                $(row).parents('tr').remove();
+            },
+            dataType: 'json'
+        });
+    }
+
+     function mostrarRegistro(id) {
+        $.get("http://localhost:3000/Viaje/" + id, function (data, status) {
+            IdViaje = data.idViaje;
+            $('#CodigoViaje').val(data.codigoViaje);
+            $('#Origen').val(data.origen);
+            $('#Destino').val(data.destino);
+            $('#Precio').val(data.precio);
+            $('#LugaresDisponibles').val(data.lugaresDisponibles);
+
+            $('#mdlCrearViaje').modal('show');
+        });
+    } 
+</script>
+
+<div class="modal fade" id="mdlCrearViaje" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Editar Viaje</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="frmViaje">
+                    <div class="form-group">
+                        <label for="CodigoViaje">Codigo</label>
+                        <input type="text" class="form-control" id="CodigoViaje" name="CodigoViaje" placeholder="Escriba el código del vuelo">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Origen">Origen</label>
+                        <input type="text" class="form-control" id="Origen" name="Origen" placeholder="Escriba el origen del vuelo">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Destino">Destino</label>
+                        <input type="text" class="form-control" id="Destino" name="Destino" placeholder="Escriba el destino del vuelo">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Precio">Precio</label>
+                        <input type="tel" class="form-control" id="Precio" name="Precio" placeholder="Escriba el precio del boleto">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="LugaresDisponibles">Asientos</label>
+                        <input type="tel" class="form-control" id="LugaresDisponibles" name="LugaresDisponibles" placeholder="Escriba los lugares disponibles">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button id="btnGuardar" type="button" class="btn btn-primary">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row booking-result">
+    <div class="col-md-12 col-md-push-12">
+        <button id="btnAbrirVentana" type="button" class="btn btn-outline-primary">Crear viajero</button>
+        <div style="margin:20px;"></div>
+        <table id="tblViajes" class="table table-striped">
+            <thead>
+                <tr>
+                    <th style="display:none;">Id</th>
+                    <th>Código</th>
+                    <th>Origen</th>
+                    <th>Destino</th>
+                    <th>Precio</th>
+                    <th>Asientos disponibles</th>
+                    <th style="width:250px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,229 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<style>
+    .booking-result {
+        background-color: #fff;
+        padding: 50px 20px;
+        -webkit-box-shadow: 0px 5px 20px -5px rgba(0, 0, 0, 0.3);
+        box-shadow: 0px 5px 20px -5px rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+    }
+</style>
+
+<script>
+    var IdViajero = 0;
+
+    $(document).ready(function (e) {
+        $('#btnAbrirVentana').click(function (e) {
+            e.preventDefault();
+            $('#Cedula').val('');
+            $('#Nombre').val('');
+            $('#Direccion').val('');
+            $('#Telefono').val('');
+            $('#mdlCrearViajero').modal('show');
+        });
+
+        $('#btnGuardar').click(function (e) {
+            e.preventDefault();
+
+            var Cedula = $('#Cedula').val();
+            var Nombre = $('#Nombre').val();
+            var Direccion = $('#Direccion').val();
+            var Telefono = $('#Telefono').val();
+
+            if (IdViajero == 0) {
+                var data = JSON.stringify({ Cedula: Cedula, Nombre: Nombre, Direccion: Direccion, Telefono: Telefono });
+
+                $.ajax({
+                    type: "POST",
+                    contentType: "application/json",
+                    url: "http://localhost:3000/Viajero",
+                    data: data,
+                    success: function (e) {
+                        $('#mdlCrearViajero').modal('hide');
+                        cargarDatos();
+                    },
+                    dataType: 'json'
+                });
+            }
+            else {
+                var data = JSON.stringify({ IdViajero: IdViajero, Cedula: Cedula, Nombre: Nombre, Direccion: Direccion, Telefono: Telefono });
+
+                $.ajax({
+                    type: "PUT",
+                    contentType: "application/json",
+                    url: "http://localhost:3000/Viajero/" + IdViajero,
+                    data: data,
+                    success: function (e) {
+                        $('#mdlCrearViajero').modal('hide');
+                        cargarDatos();
+                        IdViajero = 0;
+                        $('#Cedula').val('');
+                        $('#Nombre').val('');
+                        $('#Direccion').val('');
+                        $('#Telefono').val('');
+                    },
+                    dataType: 'json'
+                });
+            }
+            
+
+        });
+        
+        cargarDatos();
+    });
+
+    function mostrarRegistro(id) {
+        $.get("http://localhost:3000/Viajero/" + id, function (data, status) {
+            IdViajero = data.idViajero;
+            $('#Cedula').val(data.cedula);
+            $('#Nombre').val(data.nombre);
+            $('#Direccion').val(data.direccion);
+            $('#Telefono').val(data.telefono);
+            $('#mdlCrearViajero').modal('show');
+        });
+    }
+
+    function cargarDatos() {
+        $("#tblViajeros > tbody").html("");
+        $.get("http://localhost:3000/Viajero/", function (data, status) {
+            $.each(data, function (index, obj) {
+                var markup = "<tr>" +
+                    "<td style='display:none;'>" + obj.idViajero + "</td>" +
+                    "<td>" + obj.cedula + "</td>" +
+                    "<td>" + obj.nombre + "</td>" +
+                    "<td>" + obj.direccion + "</td>" +
+                    "<td>" + obj.telefono + "</td>" +
+                    "<td><button type='button' class='btn btn-outline-primary' onclick='javascript:mostrarRegistro(" + obj.idViajero + ")'><i class='fa fa-pencil-square-o'></i> Editar</button>  <button type='button' onclick='javascript:mostrarReservaciones(" + obj.idViajero + ")' class='btn btn-outline-success'><i class='fa fa-plane'></i> Reservaciones</button>  <button type='button' class='btn btn-outline-danger' onclick='javascript:borrarDatos(this, " + obj.idViajero + ")'><i class='fa fa-trash-o'></i> Borrar</button></td>" +
+                    "</tr > ";
+                $("#tblViajeros tbody").append(markup);
+
+            });
+        });
+    }
+
+    function mostrarReservaciones(id) {
+        $("#tblViajes > tbody").html("");
+        $.get("http://localhost:3000/Reservacion/GetReservacionPorIdViajero/" + id, function (data, status) {
+            $.each(data, function (index, obj) {
+                var markup = "<tr>" +
+                    "<td style='display:none;'>" + obj.idReservacion + "</td>" +
+                    "<td>" + obj.codigo + "</td>" +
+                    "<td>" + obj.origen + "</td>" +
+                    "<td>" + obj.destino + "</td>" +
+                    "<td>" + obj.asientos + "</td>" +
+                    "</tr > ";
+                $("#tblViajes tbody").append(markup);
+
+            });
+
+            $('#mdlReservaciones').modal('show');
+        });
+    }
+
+    function borrarDatos(row, id) {
+        $.ajax({
+            type: "DELETE",
+            contentType: "application/json",
+            url: "http://localhost:3000/Viajero/" + id,
+            success: function (e) {
+                $(row).parents('tr').remove();
+            },
+            dataType: 'json'
+        });
+    }
+</script>
+
+<div class="modal fade" id="mdlCrearViajero" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Editar viajero</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="frmViajero">
+                    <div class="form-group">
+                        <label for="Cedula">Cédula</label>
+                        <input type="text" class="form-control" id="Cedula" placeholder="Escriba la cédula">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Nombre">Nombre completo</label>
+                        <input type="text" class="form-control" id="Nombre" placeholder="Escriba el nombre completo">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Direccion">Dirección</label>
+                        <input type="text" class="form-control" id="Direccion" placeholder="Escriba la dirección">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Telefono">Teléfono</label>
+                        <input type="tel" class="form-control" id="Telefono" placeholder="Escriba el teléfono">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button id="btnGuardar" type="button" class="btn btn-primary">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="mdlReservaciones" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Mostrar</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table id="tblViajes" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th style="display:none;">Id</th>
+                            <th>Código</th>
+                            <th>Origen</th>
+                            <th>Destino</th>
+                            <th>Asientos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row booking-result">
+    <div class="col-md-12 col-md-push-12">
+        <button id="btnAbrirVentana" type="button" class="btn btn-outline-primary">Crear viajero</button>
+        <div style="margin:20px;"></div>
+        <table id="tblViajeros" class="table table-striped">
+            <thead>
+                <tr>
+                    <th style="display:none;">Id</th>
+                    <th>Cédula</th>
+                    <th>Nombre</th>
+                    <th>Dirección</th>
+                    <th>Teléfono</th>
+                    <th style="width:380px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>

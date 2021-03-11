@@ -5,20 +5,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PruebaEtech.Api.Models.Entidades
 {
-    public class ViajeroViaje
+    public class Reservacion
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int IdViajeroViaje { get; set; }
-        [Required]
+        public int IdReservacion { get; set; }
         public int IdViaje { get; set; }
-        [Required]
         public int IdViajero { get; set; }
-        [Required]
+        public int Asientos { get; set; }
         public DateTime FechaCreacion { get; set; }
         public DateTime FechaModificacion { get; set; }
-        [Required]
-        public virtual ICollection<Viaje> Viaje { get; set; }
-        public virtual ICollection<Viajero> Viajero { get; set; }
+        public virtual Viaje Viaje { get; set; }
+        public virtual Viajero Viajero { get; set; }
     }
 }
