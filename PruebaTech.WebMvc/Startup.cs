@@ -23,6 +23,11 @@ namespace PruebaTech.WebMvc
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(c =>
+            {
+                c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin());
+            });
+
             services.AddControllersWithViews();
         }
 
@@ -41,6 +46,8 @@ namespace PruebaTech.WebMvc
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+
+            app.UseCors("AllowOrigin");
 
             app.UseRouting();
 

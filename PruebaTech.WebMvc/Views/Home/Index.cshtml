@@ -2,7 +2,271 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    .booking-form {
+        background-color: #fff;
+        padding: 50px 20px;
+        -webkit-box-shadow: 0px 5px 20px -5px rgba(0, 0, 0, 0.3);
+        box-shadow: 0px 5px 20px -5px rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+    }
+
+        .booking-form .form-group {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .booking-form .form-control {
+            background-color: #ebecee;
+            border-radius: 4px;
+            border: none;
+            height: 40px;
+            -webkit-box-shadow: none;
+            box-shadow: none;
+            color: #3e485c;
+            font-size: 14px;
+        }
+
+            .booking-form .form-control::-webkit-input-placeholder {
+                color: rgba(62, 72, 92, 0.3);
+            }
+
+            .booking-form .form-control:-ms-input-placeholder {
+                color: rgba(62, 72, 92, 0.3);
+            }
+
+            .booking-form .form-control::placeholder {
+                color: rgba(62, 72, 92, 0.3);
+            }
+
+        .booking-form input[type="date"].form-control:invalid {
+            color: rgba(62, 72, 92, 0.3);
+        }
+
+        .booking-form select.form-control {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+            .booking-form select.form-control + .select-arrow {
+                position: absolute;
+                right: 0px;
+                bottom: 4px;
+                width: 32px;
+                line-height: 32px;
+                height: 32px;
+                text-align: center;
+                pointer-events: none;
+                color: rgba(62, 72, 92, 0.3);
+                font-size: 14px;
+            }
+
+                .booking-form select.form-control + .select-arrow:after {
+                    content: '\279C';
+                    display: block;
+                    -webkit-transform: rotate(90deg);
+                    transform: rotate(90deg);
+                }
+
+        .booking-form .form-label {
+            display: inline-block;
+            color: #3e485c;
+            font-weight: 700;
+            margin-bottom: 6px;
+            margin-left: 7px;
+        }
+
+        .booking-form .submit-btn {
+            display: inline-block;
+            color: #fff;
+            background-color: #1e62d8;
+            font-weight: 700;
+            padding: 14px 30px;
+            border-radius: 4px;
+            border: none;
+            -webkit-transition: 0.2s all;
+            transition: 0.2s all;
+        }
+
+            .booking-form .submit-btn:hover,
+            .booking-form .submit-btn:focus {
+                opacity: 0.9;
+            }
+
+    .booking-cta {
+        margin-top: 80px;
+        margin-bottom: 30px;
+    }
+
+        .booking-cta h1 {
+            font-size: 52px;
+            text-transform: uppercase;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .booking-cta p {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+    .booking-result {
+        background-color: #fff;
+        padding: 50px 20px;
+        -webkit-box-shadow: 0px 5px 20px -5px rgba(0, 0, 0, 0.3);
+        box-shadow: 0px 5px 20px -5px rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+    }
+</style>
+
+<script>
+    var $PrimeraEjecucion = true;
+    var $IdViaje = 0;
+
+    $(document).ready(function (e) {
+        $('#btnBuscar').click(function (e) {
+            e.preventDefault();
+
+            var criterioBusqueda = $('#txtCriterioBusqueda').val();
+            if (criterioBusqueda) {
+                if ($PrimeraEjecucion) {
+                    $('#cuadroResultados').collapse('toggle');
+                }                    
+                $.get("http://localhost:3000/viaje/GetViajePorDestino/" + criterioBusqueda, function (data, status) {
+                    $.each(data, function (index, obj) {
+                        var markup = "<tr>" +
+                            "<td style='display:none;'>" + obj.idViaje + "</td>" +
+                            "<td>" + obj.codigoViaje + "</td>" +
+                            "<td>" + obj.origen + "</td>" +
+                            "<td>" + obj.destino + "</td>" +
+                            "<td>" + obj.precio + "</td>" +
+                            "<td>" + obj.lugaresDisponibles + "</td>" +
+                            "<td><button type='button' class='btn btn-outline-success' onclick='javascript:MostarVentanaReservacion(" + obj.idViaje + ")'><i class='fa fa-plane'></i> Reservar</button></td>" +
+                            "</tr > ";
+                        $("#tblViajes tbody").append(markup);
+
+                    });
+                });
+            }
+        });
+
+        $('#btnGuardar').click(function (e) {
+            e.preventDefault();
+
+            var IdViajero = $('#IdViajero').val();
+            var Asientos = $('#Asientos').val();
+
+            var data = JSON.stringify({ IdViaje: parseFloat($IdViaje), IdViajero: parseFloat(IdViajero), Asientos: parseFloat(Asientos) });
+
+            $.ajax({
+                type: "POST",
+                contentType: "application/json",
+                url: "http://localhost:3000/Reservacion",
+                data: data,
+                success: function (e) {
+                    $('#mdlCrearReservacion').modal('hide');
+                },
+                dataType: 'json'
+            });
+        });
+
+        cargarViajeros();
+    });
+
+
+    function cargarViajeros() {
+        $ddlViajero = $('#IdViajero');
+        $.get("http://localhost:3000/Viajero/", function (data, status) {
+            $ddlViajero.empty();
+            $ddlViajero.append('<option value="" selected>(Seleccione una opción)</option>');
+
+            $.each(data, function (index, obj) {
+                $ddlViajero.append('<option value="' + obj.idViajero + '">' + obj.nombre + '</option>');
+            });
+
+        });
+    }
+
+    function MostarVentanaReservacion(id) {
+        $IdViaje = id;
+        $('#mdlCrearReservacion').modal('show');
+    }
+</script>
+
+<div class="modal fade" id="mdlCrearReservacion" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Editar Viaje</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="frmViaje">
+                    <div class="form-group">
+                        <label for="IdViajero">Viajero</label>
+                        <select id="IdViajero" class="form-control">
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Asientos">Asientos</label>
+                        <input type="text" class="form-control" id="Asientos" name="Asientos" placeholder="Seleccione el número de asientos">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button id="btnGuardar" type="button" class="btn btn-primary">Reservar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-7 col-md-push-5">
+        <div id="cuadroTexto" class="booking-cta">
+            <h1>Reserve su vuelo</h1>
+            <p>
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Animi facere, soluta magnam consectetur molestias itaque
+                ad sint fugit architecto incidunt iste culpa perspiciatis possimus voluptates aliquid consequuntur cumque quasi.
+                Perspiciatis.
+            </p>
+        </div>
+    </div>
+    <div style="margin:20px;"></div>
+    <div id="cuadroResultados" class="collapse col-md-7 col-md-push-5">
+        <div class="booking-result">
+            <table id="tblViajes" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th style="display:none;">Id</th>
+                        <th>Código</th>
+                        <th>Origen</th>
+                        <th>Destino</th>
+                        <th>Precio</th>
+                        <th>Asientos disponibles</th>
+                        <th style="width:250px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-4 col-md-pull-7">
+        <div class="booking-form">
+            <form>
+                <div class="form-group">
+                    <span class="form-label">Su destino</span>
+                    <input id="txtCriterioBusqueda" class="form-control" type="text" placeholder="Introduzca un destino o un código de vuelo">
+                </div>
+                <div class="form-btn" style="text-align:center;">
+                    <button id="btnBuscar" class="submit-btn">Revisar vuelos</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>

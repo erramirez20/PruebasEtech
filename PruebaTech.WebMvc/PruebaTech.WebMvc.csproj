@@ -4,4 +4,10 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\Viajero\" />
+    <Folder Include="wwwroot\lib\font-awesome\" />
+    <Folder Include="Views\Viaje\" />
+    <Folder Include="wwwroot\img\" />
+  </ItemGroup>
 </Project>

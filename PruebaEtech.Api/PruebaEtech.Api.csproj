@@ -9,6 +9,9 @@
     <Folder Include="Models\" />
     <Folder Include="Models\Contexto\" />
     <Folder Include="Models\Entidades\" />
+    <Folder Include="Models\Mapeos\" />
+    <Folder Include="Migrations\" />
+    <Folder Include="Models\Dto\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.3" />
